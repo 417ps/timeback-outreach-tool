@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Calculator - Time Back Consulting</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: white;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            background: #6B8E5B;
+            color: white;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-radius: 12px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .calculator-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            align-items: start;
+        }
+        
+        .input-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #e5e5e5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .results-section {
+            background: #6B8E5B;
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6B8E5B;
+            box-shadow: 0 0 0 3px rgba(107, 142, 91, 0.1);
+        }
+        
+        .slider-container {
+            margin-top: 0.5rem;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6B8E5B;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6B8E5B;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .result-item {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .result-item h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8FAF7F;
+        }
+        
+        .chart-main-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .chart-header {
+            background: #6B8E5B;
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .chart-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .chart-with-tickers {
+            display: flex;
+            height: 500px;
+        }
+        
+        .chart-area {
+            flex: 1;
+            padding: 2rem;
+            padding-right: 1rem;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        #growthChart {
+            max-width: 100%;
+            max-height: 400px;
+        }
+        
+        .ticker-panel {
+            width: 250px;
+            background: #f8f9fa;
+            border-left: 1px solid #e5e5e5;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .ticker-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            text-align: center;
+        }
+        
+        .ticker-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .ticker-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #6B8E5B;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .toggle-btn {
+            background: white;
+            color: #6B8E5B;
+            border: 2px solid #6B8E5B;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn.active {
+            background: #6B8E5B;
+            color: white;
+        }
+        
+        .toggle-btn:hover {
+            background: #6B8E5B;
+            color: white;
+        }
+        
+        .chart-container {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: block;
+            height: 500px;
+        }
+        
+        .projection-table {
+            width: 100%;
+            margin-top: 2rem;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .projection-table.active {
+            display: block;
+        }
+        
+        .projection-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .projection-table th {
+            background: #6B8E5B;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .projection-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .projection-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        
+        @media (max-width: 768px) {
+            .calculator-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span style="color: #8FAF7F; font-size: 2rem; margin-right: 0.5rem;">$</span>Investment Calculator</h1>
+            <p>See how your money can grow with community-focused real estate investments</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.95rem;">
+                <strong>Why 14% returns?</strong> Our dedicated real estate team isn't muddled with corporate greed. Instead of feeding Wall Street giants, we keep wealth in our communities, focused on what matters most to medical professionals like you.
+            </div>
+        </div>
+        
+        <div class="calculator-container">
+            <div class="input-section">
+                <h2 style="margin-bottom: 1.5rem; color: #6B8E5B;">Investment Parameters</h2>
+                
+                <div class="form-group">
+                    <label for="investment">Initial Investment Amount</label>
+                    <input type="number" id="investment" value="200000" min="1000" max="10000000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="rate">Annual Return Rate (%)</label>
+                    <input type="number" id="rate" value="14" min="1" max="50" step="0.1">
+                    <div class="slider-container">
+                        <input type="range" id="rateSlider" class="slider" min="1" max="30" value="14" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="years">Investment Timeline (Years)</label>
+                    <input type="number" id="years" value="10" min="1" max="70">
+                    <div class="slider-container">
+                        <input type="range" id="yearsSlider" class="slider" min="1" max="70" value="10">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="compounding">Compounding Frequency</label>
+                    <select id="compounding">
+                        <option value="1">Annually</option>
+                        <option value="2">Semi-Annually</option>
+                        <option value="4">Quarterly</option>
+                        <option value="12" selected>Monthly</option>
+                        <option value="365">Daily</option>
+                    </select>
+                </div>
+                
+                <!-- Advanced Options Toggle -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="showAdvanced" onchange="toggleAdvanced()"> 
+                        Show Advanced Options
+                    </label>
+                </div>
+                
+                <!-- Advanced Options -->
+                <div id="advancedOptions" style="display: none;">
+                    <div class="form-group">
+                        <label for="annualContribution">Annual Additional Investment</label>
+                        <input type="number" id="annualContribution" value="0" min="0" max="1000000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="annualWithdrawal">Annual Withdrawal (e.g., vacation fund)</label>
+                        <input type="number" id="annualWithdrawal" value="0" min="0" max="1000000">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chart with Ticker Display -->
+            <div class="chart-main-container">
+                <div class="chart-header">
+                    <h2>Investment Growth Visualization</h2>
+                </div>
+                
+                <!-- Chart Container -->
+                <div class="chart-container active" id="chartContainer">
+                    <div class="chart-with-tickers">
+                        <div class="chart-area">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                        <div class="ticker-panel">
+                            <div class="ticker-item">
+                                <div class="ticker-label">Final Amount</div>
+                                <div class="ticker-value" id="finalAmount">$259,374</div>
+                            </div>
+                            <div class="ticker-item">
+                                <div class="ticker-label">Total Interest</div>
+                                <div class="ticker-value" id="totalInterest">$159,374</div>
+                            </div>
+                            <div class="ticker-item">
+                                <div class="ticker-label">Annual Income</div>
+                                <div class="ticker-value" id="annualIncome">$25,937</div>
+                            </div>
+                            <div class="ticker-item">
+                                <div class="ticker-label">Monthly Income</div>
+                                <div class="ticker-value" id="monthlyIncome">$2,161</div>
+                            </div>
+                            <div class="ticker-item" id="contributionTicker" style="display: none;">
+                                <div class="ticker-label">Total Contributions</div>
+                                <div class="ticker-value" id="totalContributions">$0</div>
+                            </div>
+                            <div class="ticker-item" id="withdrawalTicker" style="display: none;">
+                                <div class="ticker-label">Total Withdrawals</div>
+                                <div class="ticker-value" id="totalWithdrawals">$0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get DOM elements
+        const investmentInput = document.getElementById('investment');
+        const rateInput = document.getElementById('rate');
+        const rateSlider = document.getElementById('rateSlider');
+        const yearsInput = document.getElementById('years');
+        const yearsSlider = document.getElementById('yearsSlider');
+        const compoundingSelect = document.getElementById('compounding');
+        const annualContributionInput = document.getElementById('annualContribution');
+        const annualWithdrawalInput = document.getElementById('annualWithdrawal');
+        
+        const finalAmountEl = document.getElementById('finalAmount');
+        const totalInterestEl = document.getElementById('totalInterest');
+        const annualIncomeEl = document.getElementById('annualIncome');
+        const monthlyIncomeEl = document.getElementById('monthlyIncome');
+        const totalContributionsEl = document.getElementById('totalContributions');
+        const totalWithdrawalsEl = document.getElementById('totalWithdrawals');
+        const projectionTableEl = document.getElementById('projectionTable');
+        
+        // Chart variables
+        let growthChart = null;
+        
+        // Sync sliders with inputs
+        rateInput.addEventListener('input', function() {
+            rateSlider.value = this.value;
+            calculate();
+        });
+        
+        rateSlider.addEventListener('input', function() {
+            rateInput.value = this.value;
+            calculate();
+        });
+        
+        yearsInput.addEventListener('input', function() {
+            yearsSlider.value = this.value;
+            calculate();
+        });
+        
+        yearsSlider.addEventListener('input', function() {
+            yearsInput.value = this.value;
+            calculate();
+        });
+        
+        // Calculate on input change
+        investmentInput.addEventListener('input', calculate);
+        compoundingSelect.addEventListener('change', calculate);
+        annualContributionInput.addEventListener('input', calculate);
+        annualWithdrawalInput.addEventListener('input', calculate);
+        
+        function toggleAdvanced() {
+            const advancedOptions = document.getElementById('advancedOptions');
+            const checkbox = document.getElementById('showAdvanced');
+            const contributionTicker = document.getElementById('contributionTicker');
+            const withdrawalTicker = document.getElementById('withdrawalTicker');
+            
+            if (checkbox.checked) {
+                advancedOptions.style.display = 'block';
+                contributionTicker.style.display = 'block';
+                withdrawalTicker.style.display = 'block';
+            } else {
+                advancedOptions.style.display = 'none';
+                contributionTicker.style.display = 'none';
+                withdrawalTicker.style.display = 'none';
+                annualContributionInput.value = 0;
+                annualWithdrawalInput.value = 0;
+                calculate();
+            }
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        function calculate() {
+            const principal = parseFloat(investmentInput.value) || 0;
+            const rate = parseFloat(rateInput.value) / 100 || 0;
+            const years = parseInt(yearsInput.value) || 0;
+            const compounding = parseInt(compoundingSelect.value) || 1;
+            const annualContribution = parseFloat(annualContributionInput.value) || 0;
+            const annualWithdrawal = parseFloat(annualWithdrawalInput.value) || 0;
+            
+            // Calculate with contributions and withdrawals
+            let currentBalance = principal;
+            let totalContributions = annualContribution * years;
+            let totalWithdrawals = annualWithdrawal * years;
+            let totalInterestEarned = 0;
+            
+            // Year-by-year calculation for accuracy with contributions/withdrawals
+            for (let year = 1; year <= years; year++) {
+                // Add interest for the year
+                const yearlyInterest = currentBalance * rate;
+                currentBalance += yearlyInterest;
+                totalInterestEarned += yearlyInterest;
+                
+                // Add annual contribution
+                currentBalance += annualContribution;
+                
+                // Subtract annual withdrawal
+                currentBalance -= annualWithdrawal;
+                
+                // Ensure balance doesn't go negative
+                if (currentBalance < 0) currentBalance = 0;
+            }
+            
+            const finalAmount = currentBalance;
+            const annualIncome = finalAmount * 0.10; // Assuming 10% withdrawal rate
+            const monthlyIncome = annualIncome / 12;
+            
+            // Update results
+            finalAmountEl.textContent = formatCurrency(finalAmount);
+            totalInterestEl.textContent = formatCurrency(totalInterestEarned);
+            annualIncomeEl.textContent = formatCurrency(annualIncome);
+            monthlyIncomeEl.textContent = formatCurrency(monthlyIncome);
+            totalContributionsEl.textContent = formatCurrency(totalContributions);
+            totalWithdrawalsEl.textContent = formatCurrency(totalWithdrawals);
+            
+            // Generate projection table
+            generateProjectionTable(principal, rate, years, compounding, annualContribution, annualWithdrawal);
+            
+            // Update chart
+            updateChart(principal, rate, years, compounding, annualContribution, annualWithdrawal);
+        }
+        
+        function generateProjectionTable(principal, rate, years, compounding, annualContribution = 0, annualWithdrawal = 0) {
+            let html = '';
+            let currentBalance = principal;
+            
+            // Show key years (1, 5, 10, 15, 20, 25, 30, etc.)
+            const keyYears = [];
+            for (let i = 1; i <= years; i++) {
+                if (i <= 5 || i % 5 === 0 || i === years) {
+                    keyYears.push(i);
+                }
+            }
+            
+            keyYears.forEach(year => {
+                // Calculate year-by-year for accuracy
+                let yearStartBalance = principal;
+                for (let y = 1; y < year; y++) {
+                    yearStartBalance += yearStartBalance * rate;
+                    yearStartBalance += annualContribution;
+                    yearStartBalance -= annualWithdrawal;
+                    if (yearStartBalance < 0) yearStartBalance = 0;
+                }
+                
+                const interestEarned = yearStartBalance * rate;
+                const yearEndBalance = yearStartBalance + interestEarned + annualContribution - annualWithdrawal;
+                
+                html += `
+                    <tr>
+                        <td><strong>Year ${year}</strong></td>
+                        <td>${formatCurrency(yearStartBalance)}</td>
+                        <td>${formatCurrency(interestEarned)}</td>
+                        <td>${formatCurrency(annualContribution)}</td>
+                        <td>${formatCurrency(annualWithdrawal)}</td>
+                        <td><strong>${formatCurrency(Math.max(0, yearEndBalance))}</strong></td>
+                    </tr>
+                `;
+            });
+            
+            projectionTableEl.innerHTML = html;
+        }
+        
+        function updateChart(principal, rate, years, compounding, annualContribution = 0, annualWithdrawal = 0) {
+            const ctx = document.getElementById('growthChart');
+            if (!ctx) {
+                console.error('Canvas element not found');
+                return;
+            }
+            const labels = [];
+            const principalData = [];
+            const totalData = [];
+            const contributionData = [];
+            
+            // Generate data points for chart - linear scale up to 20 years, then every 5 years
+            const maxDisplayYears = Math.min(years, 20);
+            
+            for (let year = 0; year <= maxDisplayYears; year++) {
+                labels.push(`Year ${year}`);
+                
+                if (year === 0) {
+                    principalData.push(principal);
+                    totalData.push(principal);
+                    contributionData.push(0);
+                } else {
+                    // Calculate balance for this year with contributions/withdrawals
+                    let currentBalance = principal;
+                    let totalContributions = 0;
+                    
+                    for (let y = 1; y <= year; y++) {
+                        currentBalance += currentBalance * rate;
+                        currentBalance += annualContribution;
+                        currentBalance -= annualWithdrawal;
+                        totalContributions += annualContribution;
+                        if (currentBalance < 0) currentBalance = 0;
+                    }
+                    
+                    principalData.push(principal + totalContributions);
+                    totalData.push(currentBalance);
+                    contributionData.push(totalContributions);
+                }
+            }
+            
+            // If years > 20, add points every 5 years after 20
+            if (years > 20) {
+                for (let year = 25; year <= years; year += 5) {
+                    labels.push(`Year ${year}`);
+                    
+                    let currentBalance = principal;
+                    let totalContributions = 0;
+                    
+                    for (let y = 1; y <= year; y++) {
+                        currentBalance += currentBalance * rate;
+                        currentBalance += annualContribution;
+                        currentBalance -= annualWithdrawal;
+                        totalContributions += annualContribution;
+                        if (currentBalance < 0) currentBalance = 0;
+                    }
+                    
+                    principalData.push(principal + totalContributions);
+                    totalData.push(currentBalance);
+                    contributionData.push(totalContributions);
+                }
+                
+                // Always include the final year if it's not already included
+                if (years % 5 !== 0 && years > 20) {
+                    labels.push(`Year ${years}`);
+                    
+                    let currentBalance = principal;
+                    let totalContributions = 0;
+                    
+                    for (let y = 1; y <= years; y++) {
+                        currentBalance += currentBalance * rate;
+                        currentBalance += annualContribution;
+                        currentBalance -= annualWithdrawal;
+                        totalContributions += annualContribution;
+                        if (currentBalance < 0) currentBalance = 0;
+                    }
+                    
+                    principalData.push(principal + totalContributions);
+                    totalData.push(currentBalance);
+                    contributionData.push(totalContributions);
+                }
+            }
+            
+            // Destroy existing chart if it exists
+            if (growthChart) {
+                growthChart.destroy();
+            }
+            
+            // Create datasets - only show contributions line if there are contributions
+            const datasets = [
+                {
+                    label: 'Principal + Contributions',
+                    data: principalData,
+                    borderColor: '#8FAF7F',
+                    backgroundColor: 'rgba(143, 175, 127, 0.1)',
+                    fill: false,
+                    tension: 0.1,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Total Value (after withdrawals)',
+                    data: totalData,
+                    borderColor: '#6B8E5B',
+                    backgroundColor: 'rgba(107, 142, 91, 0.1)',
+                    fill: '+1',
+                    tension: 0.1,
+                    borderWidth: 3
+                }
+            ];
+            
+            // Create new chart
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Investment Growth Over Time',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            color: '#6B8E5B'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(107, 142, 91, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(107, 142, 91, 0.1)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    hover: {
+                        animationDuration: 200
+                    }
+                }
+            });
+        }
+        
+        
+        // Simple initialization with debugging
+        window.addEventListener('load', function() {
+            console.log('Window loaded');
+            console.log('Chart available:', typeof Chart !== 'undefined');
+            console.log('Canvas element:', document.getElementById('growthChart'));
+            calculate();
+        });
+    </script>
+</body>
+</html>
